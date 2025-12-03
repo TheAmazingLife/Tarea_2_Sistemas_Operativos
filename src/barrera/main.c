@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <time.h>
 #include "barrera.h"
 
 typedef struct {
@@ -30,6 +31,10 @@ int main(int argc, char *argv[]) {
     int N = (argc > 1) ? atoi(argv[1]) : 5;
     int E = (argc > 2) ? atoi(argv[2]) : 4;
 
+    // Configurar semilla aleatoria y desactivar buffering en stdout
+    srand(time(NULL) ^ getpid());
+    setbuf(stdout, NULL);
+
     pthread_t hilos[N];
     thread_arg_t args[N];
 
@@ -42,7 +47,10 @@ int main(int argc, char *argv[]) {
         args[i].tid = i;
         args[i].etapas = E;
         args[i].bar = &barrera;
-        pthread_create(&hilos[i], NULL, trabajador, &args[i]);
+        if (pthread_create(&hilos[i], NULL, trabajador, &args[i]) != 0) {
+            perror("Error al crear hebra");
+            exit(1);
+        }
     }
 
     for (int i = 0; i < N; i++) {
